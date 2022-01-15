@@ -1,6 +1,6 @@
-const fetchItem = async (id) => {
+const fetchItem = async (Sku) => {
   // seu código aqui
-  const response = await fetch(`https://api.mercadolibre.com/items/${id}`);
+  const response = await fetch(`https://api.mercadolibre.com/items/${Sku}`);
   const data = await response.json();
   return data;
 };

@@ -30,9 +30,11 @@ function getSkuFromProductItem(item) {
 
 function cartItemClickListener(event) {
   // coloque seu código aqui
+  let soPraTirarOErro;
+  soPraTirarOErro.push(event);
 }
 
-function createCartItemElement({ sku, name, salePrice }) {
+function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
@@ -48,9 +50,14 @@ const init = async (conjunto) => {
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
   });
-
-  const item = await fetchItem('MLB1341706310');
-  console.log(item);
+  sectionItem.addEventListener('click', async (event) => {
+    const cart = document.querySelector('.cart__items');
+    const sku = getSkuFromProductItem(event.target.parentElement);
+    const item = await fetchItem(sku);
+    const element = createCartItemElement(item);
+    console.log(element);
+    cart.appendChild(element);
+  });
 };
 
 window.onload = () => { init('computador'); };
