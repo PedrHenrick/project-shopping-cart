@@ -48,6 +48,9 @@ const init = async (conjunto) => {
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
   });
+
+  const item = await fetchItem('MLB1341706310');
+  console.log(item);
 };
 
-window.onload = async () => { await init(conjunto); };
+window.onload = () => { init('computador'); };
