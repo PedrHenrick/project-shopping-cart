@@ -1,3 +1,7 @@
+// Campo de declaração de variáveis no escopo global
+const cart = document.querySelector('.cart__items');
+const sectionItem = document.querySelector('.items');
+
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
   img.className = 'item__image';
@@ -31,7 +35,6 @@ function getSkuFromProductItem(item) {
 function cartItemClickListener(event) {
   // coloque seu código aqui
   // Remover do carrinho
-  const cart = document.querySelector('.cart__items');
   cart.removeChild(event.target);
   
   // Remover do LocalStorage
@@ -47,14 +50,14 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   return li;
 }
 
+// Função que retorna o nome do item pelo sku
 function getNameFromProductItem(item) {
   return item.querySelector('span.item__title').innerText;
 }
 
+// Função que armazena os itens no carrinho de compras e adiciona em localStorage 
 const addToCart = () => {
-  const sectionItem = document.querySelector('.items');
   sectionItem.addEventListener('click', async (event) => {
-    const cart = document.querySelector('.cart__items');
     const sku = getSkuFromProductItem(event.target.parentElement);
     const name = getNameFromProductItem(event.target.parentElement);
     const item = await fetchItem(sku);
@@ -64,8 +67,8 @@ const addToCart = () => {
   });
 };
 
+// Função que carrega os itens do catálogo
 const init = async (conjunto) => {
-  const sectionItem = document.querySelector('.items');
   const objetos = await fetchProducts(conjunto);
   const result = objetos.results;
   result.forEach(({ id: sku, title: name, thumbnail: image }) => {
@@ -74,7 +77,19 @@ const init = async (conjunto) => {
   });
 };
 
-window.onload = () => { 
+// Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
+const initialize = () => {
+  const cartItems = getSavedCartItems();
+
+  cartItems.forEach(async (sku) => {
+    const item = await fetchItem(sku);
+    const element = createCartItemElement(item);
+    cart.appendChild(element);
+  });
+};
+
+window.onload = () => {
+  initialize(); 
   init('computador'); 
   addToCart(); 
 };

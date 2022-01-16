@@ -5,8 +5,6 @@ const fetchItem = async (Sku) => {
   return data;
 };
 
-console.log(fetchItem());
-
 if (typeof module !== 'undefined') {
   module.exports = {
     fetchItem,
