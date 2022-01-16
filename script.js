@@ -1,6 +1,7 @@
 // Campo de declaração de variáveis no escopo global
 const cart = document.querySelector('.cart__items');
 const sectionItem = document.querySelector('.items');
+const spanItem = document.querySelector('.total-price');
 
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
@@ -32,24 +33,23 @@ function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
 
-function cartItemClickListener(event) {
-  // coloque seu código aqui
+const cartItemClickListener = async (event) => {
   // Remover do carrinho
   cart.removeChild(event.target);
-  
   // Remover do LocalStorage
   const price = (event.target.innerText).split(' ');
-  let valueOfItem = 0;
-  price.forEach((valor) => {
-    if (valor[0] === '$') {
-      const value = valor.replace(/[^0-9]/g, '');
-      valueOfItem += value - (value * 2);
-    }
-  });
+  localStorage.removeItem(price[1]);
+  const item = await fetchItem(price[1]);
+  const valorARemover = (item.price).toFixed(2);
+  const valorAtual = parseFloat(localStorage.getItem('price')).toFixed(2);
+
+  const subtotal = valorAtual - valorARemover;
   
-  const element = (event.target.innerText).split(' ')[1];
-  localStorage.removeItem(element);
-}
+  if (subtotal <= 0) localStorage.setItem('price', 0);
+  else localStorage.setItem('price', subtotal);
+  
+  spanItem.innerText = localStorage.getItem('price');
+};
 
 function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   const li = document.createElement('li');
@@ -73,32 +73,23 @@ const addToCart = () => {
     const element = createCartItemElement(item);
     cart.appendChild(element);
     saveCartItems(sku, name, item.price);
-    cart.firstChild.lastChild.innerText = localStorage.getItem('price');
+    spanItem.innerText = localStorage.getItem('price');
   });
 };
 
 // Função que carrega os itens do catálogo
 const init = async (conjunto) => {
-  // localStorage.setItem('price', 0);
   const objetos = await fetchProducts(conjunto);
   const result = objetos.results;
   result.forEach(({ id: sku, title: name, thumbnail: image }) => {
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
   });
-  const ol = document.createElement('ol');
-  ol.className = 'total-price';
-  ol.innerText = 'SubTotal';
-  cart.appendChild(ol);
-
-  const li = document.createElement('li');
-  li.className = 'total-value';
-  li.innerText = localStorage.getItem('price');
-  ol.appendChild(li);
 };
 
 // Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
 const initialize = () => {  
+  spanItem.innerText = localStorage.getItem('price');
   const cartItems = getSavedCartItems();
     cartItems.forEach(async (sku) => {
       if (sku !== 'price') {
