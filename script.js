@@ -38,6 +38,15 @@ function cartItemClickListener(event) {
   cart.removeChild(event.target);
   
   // Remover do LocalStorage
+  const price = (event.target.innerText).split(' ');
+  let valueOfItem = 0;
+  price.forEach((valor) => {
+    if (valor[0] === '$') {
+      const value = valor.replace(/[^0-9]/g, '');
+      valueOfItem += value - (value * 2);
+    }
+  });
+  
   const element = (event.target.innerText).split(' ')[1];
   localStorage.removeItem(element);
 }
@@ -55,7 +64,7 @@ function getNameFromProductItem(item) {
   return item.querySelector('span.item__title').innerText;
 }
 
-// Função que armazena os itens no carrinho de compras e adiciona em localStorage 
+// Função que armazena os itens no carrinho de compras, soma seus valores e adiciona em localStorage 
 const addToCart = () => {
   sectionItem.addEventListener('click', async (event) => {
     const sku = getSkuFromProductItem(event.target.parentElement);
@@ -63,33 +72,49 @@ const addToCart = () => {
     const item = await fetchItem(sku);
     const element = createCartItemElement(item);
     cart.appendChild(element);
-    saveCartItems(sku, name);
+    saveCartItems(sku, name, item.price);
+    cart.firstChild.lastChild.innerText = localStorage.getItem('price');
   });
 };
 
 // Função que carrega os itens do catálogo
 const init = async (conjunto) => {
+  // localStorage.setItem('price', 0);
   const objetos = await fetchProducts(conjunto);
   const result = objetos.results;
   result.forEach(({ id: sku, title: name, thumbnail: image }) => {
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
   });
+  const ol = document.createElement('ol');
+  ol.className = 'total-price';
+  ol.innerText = 'SubTotal';
+  cart.appendChild(ol);
+
+  const li = document.createElement('li');
+  li.className = 'total-value';
+  li.innerText = localStorage.getItem('price');
+  ol.appendChild(li);
 };
 
 // Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
-const initialize = () => {
+const initialize = () => {  
   const cartItems = getSavedCartItems();
-
-  cartItems.forEach(async (sku) => {
-    const item = await fetchItem(sku);
-    const element = createCartItemElement(item);
-    cart.appendChild(element);
-  });
+    cartItems.forEach(async (sku) => {
+      if (sku !== 'price') {
+        const item = await fetchItem(sku);
+        const element = createCartItemElement(item);
+        cart.appendChild(element);
+      }
+    });
 };
 
 window.onload = () => {
   initialize(); 
-  init('computador'); 
+  init('computador');
   addToCart(); 
 };
+
+// Referências: 
+//  Pegar as chaves do localStorage: https://qastack.com.br/programming/8419354/get-html5-localstorage-keys
+//  Remover numeros de uma palavra: https://www.horadecodar.com.br/2020/10/14/como-obter-apenas-os-numeros-de-uma-string-em-javascript/
