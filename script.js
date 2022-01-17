@@ -2,6 +2,7 @@
 const cart = document.querySelector('.cart__items');
 const sectionItem = document.querySelector('.items');
 const spanItem = document.querySelector('.total-price');
+const button = document.querySelector('.empty-cart');
 
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
@@ -39,10 +40,10 @@ const cartItemClickListener = async (event) => {
   // Remover do LocalStorage
   const price = (event.target.innerText).split(' ');
   localStorage.removeItem(price[1]);
+
   const item = await fetchItem(price[1]);
   const valorARemover = (item.price).toFixed(2);
   const valorAtual = parseFloat(localStorage.getItem('price')).toFixed(2);
-
   const subtotal = valorAtual - valorARemover;
   
   if (subtotal <= 0) localStorage.setItem('price', 0);
@@ -105,6 +106,20 @@ window.onload = () => {
   init('computador');
   addToCart(); 
 };
+
+const removeAll = () => {
+  const cartItems = getSavedCartItems();
+  button.addEventListener('click', () => {
+    cart.innerText = '';
+    cartItems.forEach((sku) => {
+      console.log(sku);
+      localStorage.removeItem(sku);
+    });
+    localStorage.setItem('price', 0);
+    spanItem.innerText = localStorage.getItem('price');
+  });
+};
+removeAll();
 
 // Referências: 
 //  Pegar as chaves do localStorage: https://qastack.com.br/programming/8419354/get-html5-localstorage-keys
