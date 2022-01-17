@@ -4,6 +4,7 @@ const sectionItem = document.querySelector('.items');
 const spanItem = document.querySelector('.total-price');
 const button = document.querySelector('.empty-cart');
 
+// Função que cria a imagem que será usada
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
   img.className = 'item__image';
@@ -11,6 +12,7 @@ function createProductImageElement(imageSource) {
   return img;
 }
 
+// Função que cria os elementos que apareceram
 function createCustomElement(element, className, innerText) {
   const e = document.createElement(element);
   e.className = className;
@@ -18,6 +20,7 @@ function createCustomElement(element, className, innerText) {
   return e;
 }
 
+// Função que faz a colocação dos itens 
 function createProductItemElement({ sku, name, image }) {
   const section = document.createElement('section');
   section.className = 'item';
@@ -30,10 +33,12 @@ function createProductItemElement({ sku, name, image }) {
   return section;
 }
 
+// Função que pega o sku do que será pedido
 function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
 
+// Função do evento de click que apaga itens do cart
 const cartItemClickListener = async (event) => {
   // Remover do carrinho
   cart.removeChild(event.target);
@@ -46,12 +51,13 @@ const cartItemClickListener = async (event) => {
   const valorAtual = parseFloat(localStorage.getItem('price')).toFixed(2);
   const subtotal = valorAtual - valorARemover;
   
-  if (subtotal <= 0) localStorage.setItem('price', 0);
+  if (subtotal <= 0) localStorage.setItem('price', '0,00');
   else localStorage.setItem('price', subtotal);
   
   spanItem.innerText = localStorage.getItem('price');
 };
 
+// Função que cria itens para serem colocados no cart
 function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   const li = document.createElement('li');
   li.className = 'cart__item';
@@ -64,6 +70,18 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
 function getNameFromProductItem(item) {
   return item.querySelector('span.item__title').innerText;
 }
+
+// evento de click no botão para esvaziar o carrinho. Responsável por apagar tanto no html quanto no localstorage
+button.addEventListener('click', () => {
+  cart.innerText = '';
+  const cartItems = getSavedCartItems();
+  cartItems.forEach((sku) => {
+    localStorage.removeItem(sku);
+    console.log(cartItems);
+  });
+  localStorage.setItem('price', '0,00');
+  spanItem.innerText = localStorage.getItem('price');
+});
 
 // Função que armazena os itens no carrinho de compras, soma seus valores e adiciona em localStorage 
 const addToCart = () => {
@@ -78,48 +96,50 @@ const addToCart = () => {
   });
 };
 
+// Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
+const initialize = () => {
+  if (localStorage.getItem('price')) spanItem.innerText = localStorage.getItem('price');
+  const cartItems = getSavedCartItems();
+  cartItems.forEach(async (sku) => {
+    if (sku !== 'price') {
+      const item = await fetchItem(sku);
+      const element = createCartItemElement(item);
+      cart.appendChild(element);
+    }
+  });
+};
+
+// Função que adiciona carregando na tela
+const loading = (type) => {
+  if (type === true) {
+    const paragraph = document.createElement('p');
+    paragraph.className = 'loading';
+    paragraph.innerText = 'carregando...';
+    document.body.appendChild(paragraph);
+  } else {
+    const paragraphPic = document.querySelector('.loading');
+    document.body.removeChild(paragraphPic);
+  }
+};
+
 // Função que carrega os itens do catálogo
 const init = async (conjunto) => {
+  loading(true);
   const objetos = await fetchProducts(conjunto);
+  loading(false);
   const result = objetos.results;
   result.forEach(({ id: sku, title: name, thumbnail: image }) => {
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
-  });
+  }); 
 };
 
-// Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
-const initialize = () => {  
-  spanItem.innerText = localStorage.getItem('price');
-  const cartItems = getSavedCartItems();
-    cartItems.forEach(async (sku) => {
-      if (sku !== 'price') {
-        const item = await fetchItem(sku);
-        const element = createCartItemElement(item);
-        cart.appendChild(element);
-      }
-    });
-};
-
+// Função que indica p que aparecerá assim que a página carregar
 window.onload = () => {
-  initialize(); 
   init('computador');
+  initialize(); 
   addToCart(); 
 };
-
-const removeAll = () => {
-  const cartItems = getSavedCartItems();
-  button.addEventListener('click', () => {
-    cart.innerText = '';
-    cartItems.forEach((sku) => {
-      console.log(sku);
-      localStorage.removeItem(sku);
-    });
-    localStorage.setItem('price', 0);
-    spanItem.innerText = localStorage.getItem('price');
-  });
-};
-removeAll();
 
 // Referências: 
 //  Pegar as chaves do localStorage: https://qastack.com.br/programming/8419354/get-html5-localstorage-keys
