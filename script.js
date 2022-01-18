@@ -77,7 +77,6 @@ button.addEventListener('click', () => {
   const cartItems = getSavedCartItems();
   cartItems.forEach((sku) => {
     localStorage.removeItem(sku);
-    console.log(cartItems);
   });
   localStorage.setItem('price', '0,00');
   spanItem.innerText = localStorage.getItem('price');
@@ -136,7 +135,7 @@ const init = async (conjunto) => {
 
 // Função que indica p que aparecerá assim que a página carregar
 window.onload = () => {
-  init('computador');
+  init(' ');
   initialize(); 
   addToCart(); 
 };
