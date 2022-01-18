@@ -127,7 +127,8 @@ const init = async (conjunto) => {
   const objetos = await fetchProducts(conjunto);
   loading(false);
   const result = objetos.results;
-  result.forEach(({ id: sku, title: name, thumbnail: image }) => {
+  result.forEach(({ id: sku, title: name, thumbnail }) => {
+    const image = thumbnail.replace('I.jpg', 'W.webp');
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
   }); 
