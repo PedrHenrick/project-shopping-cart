@@ -1,7 +1,7 @@
 // Campo de declaração de variáveis no escopo global
 const cart = document.querySelector('.cart__items');
 const sectionItem = document.querySelector('.items');
-const spanItem = document.querySelector('.total-price');
+const pItem = document.querySelector('.total-price');
 const button = document.querySelector('.empty-cart');
 
 // Função que cria a imagem que será usada
@@ -38,23 +38,25 @@ function getSkuFromProductItem(item) {
   return item.querySelector('span.item__sku').innerText;
 }
 
+// Função que calcula o preço dos ítens no carrinho
+const priceNumber = () => {
+  const productOfCart = document.querySelectorAll('.cart__item');
+  let value = 0;
+  productOfCart.forEach((product) => {
+    const element = product.innerText.split('$')[1];
+    value += parseFloat(element);
+  });
+  pItem.innerText = value;
+};
+
 // Função do evento de click que apaga itens do cart
 const cartItemClickListener = async (event) => {
   // Remover do carrinho
   cart.removeChild(event.target);
   // Remover do LocalStorage
-  const price = (event.target.innerText).split(' ');
-  localStorage.removeItem(price[1]);
-
-  const item = await fetchItem(price[1]);
-  const valorARemover = (item.price).toFixed(2);
-  const valorAtual = parseFloat(localStorage.getItem('price')).toFixed(2);
-  const subtotal = valorAtual - valorARemover;
-  
-  if (subtotal <= 0) localStorage.setItem('price', '0,00');
-  else localStorage.setItem('price', subtotal);
-  
-  spanItem.innerText = localStorage.getItem('price');
+  saveCartItems(cart.innerHTML);
+  // Atualizando o preço
+  priceNumber();
 };
 
 // Função que cria itens para serem colocados no cart
@@ -66,46 +68,29 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
   return li;
 }
 
-// Função que retorna o nome do item pelo sku
-function getNameFromProductItem(item) {
-  return item.querySelector('span.item__title').innerText;
-}
-
 // evento de click no botão para esvaziar o carrinho. Responsável por apagar tanto no html quanto no localstorage
 button.addEventListener('click', () => {
   cart.innerText = '';
-  const cartItems = getSavedCartItems();
-  cartItems.forEach((sku) => {
-    localStorage.removeItem(sku);
-  });
-  localStorage.setItem('price', '0,00');
-  spanItem.innerText = localStorage.getItem('price');
+  localStorage.clear();
+  priceNumber();
 });
 
 // Função que armazena os itens no carrinho de compras, soma seus valores e adiciona em localStorage 
-const addToCart = () => {
-  sectionItem.addEventListener('click', async (event) => {
-    const sku = getSkuFromProductItem(event.target.parentElement);
-    const name = getNameFromProductItem(event.target.parentElement);
-    const item = await fetchItem(sku);
-    const element = createCartItemElement(item);
-    cart.appendChild(element);
-    saveCartItems(sku, name, item.price);
-    spanItem.innerText = localStorage.getItem('price');
-  });
-};
+sectionItem.addEventListener('click', async (event) => {
+  const sku = getSkuFromProductItem(event.target.parentElement);
+  const item = await fetchItem(sku);
+  const element = createCartItemElement(item);
+  cart.appendChild(element);
+  console.log(cart);
+  saveCartItems(cart.innerHTML);
+  priceNumber();
+});
 
 // Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
 const initialize = () => {
-  if (localStorage.getItem('price')) spanItem.innerText = localStorage.getItem('price');
-  const cartItems = getSavedCartItems();
-  cartItems.forEach(async (sku) => {
-    if (sku !== 'price') {
-      const item = await fetchItem(sku);
-      const element = createCartItemElement(item);
-      cart.appendChild(element);
-    }
-  });
+  cart.innerHTML = getSavedCartItems();
+  console.log(cart);
+  priceNumber();
 };
 
 // Função que adiciona carregando na tela
@@ -125,22 +110,28 @@ const loading = (type) => {
 const init = async (conjunto) => {
   loading(true);
   const objetos = await fetchProducts(conjunto);
-  loading(false);
   const result = objetos.results;
   result.forEach(({ id: sku, title: name, thumbnail }) => {
     const image = thumbnail.replace('I.jpg', 'W.webp');
     const createElement = createProductItemElement({ sku, name, image });
     sectionItem.appendChild(createElement);
-  }); 
+  });
+  loading(false);
 };
 
 // Função que indica p que aparecerá assim que a página carregar
 window.onload = () => {
-  init('computador');
+  init('glock');
   initialize(); 
-  addToCart(); 
 };
+
+// Referências a code-review: 
+//  Mario Junior: https://github.com/tryber/sd-018-b-project-shopping-cart/pull/80
+// Paolo Fullone: https://github.com/tryber/sd-018-b-project-shopping-cart/pull/3
+// Laecio Silva: https://github.com/tryber/sd-018-b-project-shopping-cart/pull/87
+// Leo Oliveira: https://github.com/tryber/sd-018-b-project-shopping-cart/pull/36
 
 // Referências: 
 //  Pegar as chaves do localStorage: https://qastack.com.br/programming/8419354/get-html5-localstorage-keys
-//  Remover numeros de uma palavra: https://www.horadecodar.com.br/2020/10/14/como-obter-apenas-os-numeros-de-uma-string-em-javascript/
+//  Remover numeros de uma palavra: https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/String/split
+//  Remover todos os valores do LocalStorage: https://developer.mozilla.org/pt-BR/docs/Web/API/Storage/clear
