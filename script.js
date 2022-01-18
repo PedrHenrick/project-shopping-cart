@@ -135,7 +135,7 @@ const init = async (conjunto) => {
 
 // Função que indica p que aparecerá assim que a página carregar
 window.onload = () => {
-  init(' ');
+  init('computador');
   initialize(); 
   addToCart(); 
 };
