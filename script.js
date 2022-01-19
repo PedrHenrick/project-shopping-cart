@@ -1,8 +1,9 @@
 // Campo de declaração de variáveis no escopo global
-const cart = document.querySelector('.cart__items');
+const cartItems = document.querySelector('.cart__items');
 const sectionItem = document.querySelector('.items');
 const pItem = document.querySelector('.total-price');
 const button = document.querySelector('.empty-cart');
+const header = document.querySelector('.header');
 
 // Função que cria a imagem que será usada
 function createProductImageElement(imageSource) {
@@ -52,9 +53,9 @@ const priceNumber = () => {
 // Função do evento de click que apaga itens do cart
 const cartItemClickListener = async (event) => {
   // Remover do carrinho
-  cart.removeChild(event.target);
+  cartItems.removeChild(event.target);
   // Remover do LocalStorage
-  saveCartItems(cart.innerHTML);
+  saveCartItems(cartItems.innerHTML);
   // Atualizando o preço
   priceNumber();
 };
@@ -70,7 +71,7 @@ function createCartItemElement({ id: sku, title: name, price: salePrice }) {
 
 // evento de click no botão para esvaziar o carrinho. Responsável por apagar tanto no html quanto no localstorage
 button.addEventListener('click', () => {
-  cart.innerText = '';
+  cartItems.innerText = '';
   localStorage.clear();
   priceNumber();
 });
@@ -80,16 +81,19 @@ sectionItem.addEventListener('click', async (event) => {
   const sku = getSkuFromProductItem(event.target.parentElement);
   const item = await fetchItem(sku);
   const element = createCartItemElement(item);
-  cart.appendChild(element);
-  console.log(cart);
-  saveCartItems(cart.innerHTML);
+  cartItems.appendChild(element);
+  saveCartItems(cartItems.innerHTML);
   priceNumber();
 });
 
 // Funcção que pega os itens salvos no carrinho e retorna na página com localStorage
 const initialize = () => {
-  cart.innerHTML = getSavedCartItems();
-  console.log(cart);
+  cartItems.innerHTML = getSavedCartItems();
+  const products = cartItems.querySelectorAll('li');
+  
+  products.forEach((product) => {
+    product.addEventListener('click', cartItemClickListener);
+  });
   priceNumber();
 };
 
@@ -99,10 +103,10 @@ const loading = (type) => {
     const paragraph = document.createElement('p');
     paragraph.className = 'loading';
     paragraph.innerText = 'carregando...';
-    document.body.appendChild(paragraph);
+    header.appendChild(paragraph);
   } else {
     const paragraphPic = document.querySelector('.loading');
-    document.body.removeChild(paragraphPic);
+    header.removeChild(paragraphPic);
   }
 };
 
@@ -121,8 +125,8 @@ const init = async (conjunto) => {
 
 // Função que indica p que aparecerá assim que a página carregar
 window.onload = () => {
-  init('glock');
-  initialize(); 
+  initialize();
+  init('Orfanato da srta peregrine');
 };
 
 // Referências a code-review: 
